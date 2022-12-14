@@ -19,7 +19,7 @@
  * name    - Name of Pokemon
  * dexNum  - NatDex number
  * xpCurve - xpCurve type --> determines xp : lvl ratio
- * levelUp - level which Pokemon levels up
+ * evolve - level which Pokemon evolves
  */
 struct Pokemon {
     enum xpCurve { Erratic, Fast, MediumFast, MediumSlow, Slow, Fluctuating };
@@ -27,16 +27,17 @@ struct Pokemon {
     std::string name;
     int dexNum;
     xpCurve curve;
-    std::string levelUp;
+    std::string evolve;
 
-    Pokemon(int dexNum, std::string name, xpCurve curve, std::string levelUp)
-        : name(name), dexNum(dexNum), curve(curve), levelUp(levelUp) {}
+    Pokemon() {}
+    Pokemon(int dexNum, std::string name, xpCurve curve, std::string evolve)
+        : name(name), dexNum(dexNum), curve(curve), evolve(evolve) {}
 
     bool operator==(const Pokemon& rhs) {
         return this->name == rhs.name;
     }
     friend std::ostream& operator<<(std::ostream& os, const Pokemon& p) {
-        os << p.name << ' ' << p.dexNum << ' ' << p.curve << ' ' << p.levelUp;
+        os << p.name << ' ' << p.dexNum << ' ' << p.curve << ' ' << p.evolve;
         return os;
     }
 };
@@ -63,6 +64,7 @@ public:
         // write file
         for(const auto& [key, value] : data) {
             std::string line;
+            std::transform(line.begin(), line.end(), line.begin(), ::tolower);
             ofs << value << '\n';
         }
         ofs.close();
@@ -79,14 +81,14 @@ public:
 
         std::map<std::string, Pokemon> dex;
 
-        std::string filename = "./data/" + id + ".dat/";
+        std::string filename = "data/" + id + ".dat";
         std::ifstream fs;
         fs.open(filename);
 
         int dexNum, curve;
-        std::string name, levelUp;
-        while(fs >> name >> dexNum >> curve >> levelUp) {
-            Pokemon p(dexNum, name, Pokemon::xpCurve(curve), levelUp);
+        std::string name, evolve;
+        while(fs >> name >> dexNum >> curve >> evolve) {
+            Pokemon p(dexNum, name, Pokemon::xpCurve(curve), evolve);
             dex.insert(std::make_pair(name, p));
         }
         return dex;
