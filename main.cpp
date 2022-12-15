@@ -25,43 +25,43 @@ void init() {
 float constexpr erratic(int level) {
     if(level < 0 || level > 100) return -1;
     if(level < 50)
-        return ((float)(level ^ 3) * (100 - level)) / 50;
+        return ((std::pow(level, 3)) * (100.0f - level)) / 50.0f;
     else if(level < 68)
-        return ((float)(level ^ 3) * (150 - level)) / 50;
+        return ((std::pow(level, 3)) * (150.0f - level)) / 50.0f;
     else if(level < 98)
-        return (level ^ 3) * std::floor((1911 - (float)(10 * level)) / 3);
+        return (std::pow(level, 3)) * std::floor((1911.0f - (10.0f * level)) / 3);
     else // >= 98 && <= 100
-        return ((float)(level ^ 3) * (160 - level)) / 100;
+        return ((std::pow(level, 3)) * (160.0f - level)) / 100.0f;
 }
 
 float constexpr fast(int level) {
     if(level < 0 || level > 100) return -1;
-    return ((float)4 * (level ^ 3)) / 5;
+    return (4.0f * (std::pow(level, 3))) / 5.0f;
 }
 
 float constexpr mediumFast(int level) {
     if(level < 0 || level > 100) return -1;
-    return (float)(level ^ 3);
+    return (std::pow(level, 3));
 }
 
 float constexpr mediumSlow(int level) {
     if(level < 0 || level > 100) return -1;
-    return (float)(6 / 5) * (level ^ 3) - 15 * (level ^ 2) + 100 * level - 140;
+    return (6.0f / 5.0f) * (std::pow(level, 3)) - 15.0f * (level ^ 2) + 100.0f * level - 140.0f;
 }
 
 float constexpr slow(int level) {
     if(level < 0 || level > 100) return -1;
-    return (float)(5 / 4) * (level ^ 3);
+    return (5.0f / 4.0f) * (std::pow(level, 3));
 }
 
 float constexpr fluctuating(int level) {
     if(level < 0 || level > 100) return -1;
     if(level < 15)
-        return ((float)(level ^ 3) * std::floor((float)(level + 1) / 3) + 24) / 50;
+        return ((std::pow(level, 3)) * std::floor((level + 1.0f) / 3.0f) + 24.0f) / 50.0f;
     else if(level < 36)
-        return ((float)(level ^ 3) * (level + 14)) / 50;
+        return ((std::pow(level, 3)) * (level + 14.0f)) / 50.0f;
     else // >= 36 && <= 100
-        return ((float)(level ^ 3) * std::floor((float)(level) / 2) + 32) / 50;
+        return ((std::pow(level, 3)) * std::floor((level) / 2.0f) + 32.0f) / 50.0f;
 }
 
 void calcLevel() {
@@ -80,57 +80,76 @@ void calcLevel() {
     Pokemon p = it->second;
     Pokemon::xpCurve curve = p.curve;
 
-    std::cout << "Starting Level?" << std::endl;
-    std::cin >> input;
-    int start = std::stoi(input); // try/catch
     std::cout << "Current Exp?" << std::endl;
     std::cin >> input;
     int initExp = std::stoi(input);
     std::cout << "Desired Level or Evolve [e]" << std::endl;
     std::cin >> input;
-    int end;
+    int target;
     if(input.at(0) == 'e') {
         try {
-            end = std::stoi(p.evolve);
-        } catch(std::exception e) {
+            target = std::stoi(p.evolve);
+        } catch(std::invalid_argument const&) {
             std::cout << "Pokemon evolves by: " << p.evolve << std::endl;
+            return;
         }
     } else {
-        end = std::stoi(input);
+        target = std::stoi(input);
     }
 
-    if(start < 0 || start > 100 || end < 0 || end > 100) {
+    if(target < 0 || target > 100) {
         std::cout << "Invalid level" << std::endl;
     }
     float expReq = 0.0f;
     switch(curve) {
     case(Pokemon::xpCurve::Erratic): {
-        expReq = erratic(end) - erratic(start) - initExp;
+        expReq = erratic(target) - initExp;
         break;
     }
     case(Pokemon::xpCurve::Fast): {
-        expReq = fast(end) - fast(start) - initExp;
+        expReq = fast(target) - initExp;
         break;
     }
     case(Pokemon::xpCurve::MediumSlow): {
-        expReq = mediumSlow(end) - mediumSlow(start) - initExp;
+        expReq = mediumSlow(target) - initExp;
         break;
     }
     case(Pokemon::xpCurve::MediumFast): {
-        expReq = mediumFast(end) - mediumFast(start) - initExp;
+        expReq = mediumFast(target) - initExp;
         break;
     }
     case(Pokemon::xpCurve::Slow): {
-        expReq = slow(end) - slow(start) - initExp;
+        expReq = slow(target) - initExp;
         break;
     }
     case(Pokemon::xpCurve::Fluctuating): {
-        expReq = fluctuating(end) - fluctuating(start) - initExp;
+        expReq = fluctuating(target) - initExp;
         break;
     }
     }
 
     std::cout << "Pokemon needs " << expReq << " exp." << std::endl;
+    int XL = 0, L = 0, M = 0, S = 0, XS = 0;
+    while(expReq > 0) {
+        if(expReq >= 30000) {
+            ++XL;
+            expReq -= 30000;
+        } else if(expReq >= 10000) {
+            ++L;
+            expReq -= 10000;
+        } else if(expReq >= 3000) {
+            ++M;
+            expReq -= 3000;
+        } else if(expReq >= 800) {
+            ++S;
+            expReq -= 800;
+        } else {
+            ++XS;
+            expReq -= 100;
+        }
+    }
+    std::cout << "or "
+              << " XL: " << XL << " L: " << L << " M: " << M << " S: " << S << " XS: " << XS << " candies" << std::endl;
 }
 
 void editDex() {
@@ -146,20 +165,20 @@ void editDex() {
     std::cin >> name;
     std::transform(name.begin(), name.end(), name.begin(), ::tolower);
 
-    std::cout << "XP Curve [Erratic = 5, Fast = 4, MediumFast = 3, MediumSlow = 2, Slow = 1, Fluctuating = 0]"
+    std::cout << "XP Curve [Erratic = 0, Fast = 1, MediumFast = 2, MediumSlow = 3, Slow = 4, Fluctuating = 5]"
               << std::endl;
     int levelVal;
     std::cin >> levelVal;
     curve = Pokemon::xpCurve(levelVal);
 
     std::cout << "When does/how it level up [int/string]" << std::endl;
-    std::cin >> levelUp;
+    std::cin.ignore(256, '\n');
+    std::getline(std::cin, levelUp);
 
     std::cout << "Is [" << dexNum << "] " << name << " " << curve << " @ level " << levelUp << " Correct? [y/n]"
               << std::endl;
     std::cin >> editInput;
     if(editInput.at(0) != 'y') return;
-
 
     Pokemon p(dexNum, name, curve, levelUp);
     dex[name] = p;

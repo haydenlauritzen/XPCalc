@@ -37,7 +37,7 @@ struct Pokemon {
         return this->name == rhs.name;
     }
     friend std::ostream& operator<<(std::ostream& os, const Pokemon& p) {
-        os << p.name << ' ' << p.dexNum << ' ' << p.curve << ' ' << p.evolve;
+        os << p.dexNum << ' ' << p.name << ' ' << p.curve << ' ' << p.evolve;
         return os;
     }
 };
@@ -87,7 +87,8 @@ public:
 
         int dexNum, curve;
         std::string name, evolve;
-        while(fs >> name >> dexNum >> curve >> evolve) {
+        while(fs >> dexNum >> name >> curve) {
+            std::getline(fs, evolve);
             Pokemon p(dexNum, name, Pokemon::xpCurve(curve), evolve);
             dex.insert(std::make_pair(name, p));
         }
